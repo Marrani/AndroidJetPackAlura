@@ -2,25 +2,32 @@ package br.com.alura.technews.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import br.com.alura.technews.R
 import br.com.alura.technews.database.AppDatabase
+import br.com.alura.technews.database.dao.NoticiaDAO
 import br.com.alura.technews.model.Noticia
 import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.ui.activity.extensions.mostraErro
 import br.com.alura.technews.ui.recyclerview.adapter.ListaNoticiasAdapter
+import br.com.alura.technews.ui.viewmodel.ListaNoticiasViewModel
 import kotlinx.android.synthetic.main.activity_lista_noticias.*
 
 private const val TITULO_APPBAR = "Notícias"
 private const val MENSAGEM_FALHA_CARREGAR_NOTICIAS = "Não foi possível carregar as novas notícias"
 
 class ListaNoticiasActivity : AppCompatActivity() {
+    lateinit var _viewModel: ListaNoticiasViewModel
 
     private val repository by lazy {
         NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
     }
+
     private val adapter by lazy {
         ListaNoticiasAdapter(context = this)
     }
@@ -31,6 +38,12 @@ class ListaNoticiasActivity : AppCompatActivity() {
         title = TITULO_APPBAR
         configuraRecyclerView()
         configuraFabAdicionaNoticia()
+
+        _viewModel = ViewModelProvider(
+            this,
+        ListaNoticiasViewModel.PersonagemViewModelFactory(repository)
+        ).get(ListaNoticiasViewModel::class.java)
+
     }
 
     override fun onResume() {
@@ -56,7 +69,7 @@ class ListaNoticiasActivity : AppCompatActivity() {
     }
 
     private fun buscaNoticias() {
-        repository.buscaTodos(
+        _viewModel.buscaTodos(
             quandoSucesso = {
                 adapter.atualiza(it)
             }, quandoFalha = {
